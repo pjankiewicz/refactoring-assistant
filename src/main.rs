@@ -129,7 +129,7 @@ async fn process_file(
                 "role": "user",
                 "content": format!(
                     "<INSTRUCTION>\n{}\n</INSTRUCTION>\n\n<FILECONTENTS>\n{}\n</FILECONTENTS>",
-                    instruction, file_content
+                    instruction, current_content
                 )
             }),
         ];
