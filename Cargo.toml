@@ -3,4 +3,17 @@ name = "refactoring-assistant"
 version = "0.1.0"
 edition = "2021"
 
+# Make this a system-wide installable binary crate
+[package.metadata]
+cargo-bin = true
+
 [dependencies]
+reqwest = { version = "0.11", features = ["json", "blocking", "default-tls"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+clap = { version = "4.0", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }
+glob = "0.3"
+
+[build-dependencies]
+dotenv = "0.15"
