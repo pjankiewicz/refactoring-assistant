@@ -1,13 +1,14 @@
 use std::env;
+use std::error::Error;
 use std::fs;
 use std::path::Path;
 use std::process::Command as ProcessCommand;
+
+use clap::{Arg, Command};
 use glob::glob;
 use reqwest::Client;
 use serde_json::json;
 use tokio;
-use clap::{Arg, Command};
-use std::error::Error;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -110,7 +111,7 @@ async fn process_file(
     for attempt in 0..n_retries {
         println!("Processing file {} (attempt {}/{})", path.display(), attempt + 1, n_retries);
 
-        // Prepare OpenAI API call
+        // Improved system message to better reflect the task
         let messages = vec![
             json!({
                 "role": "system",
@@ -118,11 +119,19 @@ async fn process_file(
             }),
             json!({
                 "role": "user",
+                "content": "<INSTRUCTION>\nReplace all variable names that start with \"old_\" to start with \"new_\".\n</INSTRUCTION>\n\n<FILECONTENTS>\nlet old_value = 10;\nlet old_name = \"example\";\nlet other_var = 5;\n</FILECONTENTS>"
+            }),
+            json!({
+                "role": "assistant",
+                "content": "<REASONING>\nThe instruction is to change all variable names that start with \"old_\" to \"new_\". This is a straightforward text transformation, so the variables old_value and old_name will be renamed to new_value and new_name, respectively. Variables that don't start with \"old_\" remain unchanged.\n</REASONING>\n\n<CHANGED_FILE_CONTENTS>\nlet new_value = 10;\nlet new_name = \"example\";\nlet other_var = 5;\n</CHANGED_FILE_CONTENTS>"
+            }),
+            json!({
+                "role": "user",
                 "content": format!(
                     "<INSTRUCTION>\n{}\n</INSTRUCTION>\n\n<FILECONTENTS>\n{}\n</FILECONTENTS>",
-                    instruction, current_content
+                    instruction, file_content
                 )
-            })
+            }),
         ];
 
         let request_body = json!({
